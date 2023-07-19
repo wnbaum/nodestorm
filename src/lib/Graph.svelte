@@ -2,9 +2,10 @@
 	import { Vec } from "./utils.js";
 	import { onMount } from "svelte";
 	import { cameraToOffset, offsetToCamera, worldToCamera, cameraToWorld } from "./utils.js";
+	import NodeManager from "./NodeManager.svelte"
 
-	export let width: number = 600;
-	export let height: number = 400;
+	export let width: number = 1280;
+	export let height: number = 720;
 
 	let main: HTMLElement;
 	let transform: HTMLElement;
@@ -51,9 +52,9 @@
 		dragging = false;
 	}
 
-	function mouseWheel(e: WheelEvent) {
+	function mouseWheel(e: Event) {
 		if (!dragging) {
-			zoom *= 1 - e.deltaY*0.001;
+			zoom *= 1 - (e as WheelEvent).deltaY*0.001;
 			updateGraph();
 		}
 	}
@@ -75,11 +76,13 @@
 	}
 
 	// #endregion
+
+
 </script>
 
 <main bind:this={main} class="main" style="width: {width}px; height: {height}px;">
 	<div bind:this={transform} class="transform">
-		<div style="width: 100px; height: 100px; background: red;"/>
+		<NodeManager />
 	</div>
 </main>
 

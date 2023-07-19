@@ -1,0 +1,20 @@
+<script lang="ts">
+	export let grabbing: () => void;
+	export let dropping: () => void;
+</script>
+
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<main class="main" on:mousedown={grabbing} on:mouseup={dropping}>
+
+</main>
+
+<style>
+	.main {
+		width: 20px;
+		height: 20px;
+
+		border-radius: 10px 10px;
+
+		background: green;
+	}
+</style>
