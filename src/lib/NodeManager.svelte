@@ -115,7 +115,7 @@
 					}
 				});
 			}
-			grabbedNodeAnchors = connectedAnchors;
+			grabbedNodeAnchors = connectedAnchors; // needs to be changed to GET CONNECTED ANCHORS FROM NODE
 		}
 	}
 
