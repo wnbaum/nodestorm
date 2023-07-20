@@ -93,6 +93,7 @@
 
 	let nodeGrabPos: Vec;
 	let prevNodePos: Vec;
+	let prevSelectedNodesData: { [id: string]: NodeData } = {};
 	let grabbedNodeData: NodeData | undefined;
 	let grabbedNodeAnchors: Array<GrabAnchorData>;
 
@@ -107,6 +108,13 @@
 		grabbedNodeData = nodes.find(x => x.id == nodeId)
 		if (grabbedNodeData) {
 			prevNodePos = grabbedNodeData.pos;
+			if (grabbedNodeData.selected) {
+				nodes.forEach(n => {
+					if (n.selected) {
+						prevSelectedNodesData[n.id] = {...n}; // copy node data into prev selected node data
+					}
+				});
+			}
 			grabbedNodeAnchors = connectedAnchors;
 		}
 	}
@@ -115,7 +123,15 @@
 
 	function mouseMove() {
 		if (grabbedNodeData) {
-			grabbedNodeData.pos = mousePos.subtract(nodeGrabPos).div(zoom).add(prevNodePos)
+			let mouseDiff: Vec = mousePos.subtract(nodeGrabPos).div(zoom)
+			grabbedNodeData.pos = mouseDiff.add(prevNodePos)
+			if (grabbedNodeData.selected) {
+				nodes.forEach(n => {
+					if (n.selected) {
+						n.pos = mouseDiff.add(prevSelectedNodesData[n.id].pos)
+					}
+				});
+			}
 			nodes = nodes;
 
 			lines.forEach(line => {
@@ -158,6 +174,7 @@
 
 			selecting = false;
 			selectStart = undefined;
+			prevSelectedNodesData = {};
 		}
 	}
 
