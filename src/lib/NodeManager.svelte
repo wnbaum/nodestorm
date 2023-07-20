@@ -1,16 +1,19 @@
 <script lang="ts">
 	import { setContext } from "svelte";
 	import Node from "./Node.svelte";
-	import Line from "./Line.svelte"
+	import Line from "./Line.svelte";
+	import SelectBox from "./SelectBox.svelte";
 	import { Vec } from "./utils.js";
 
 	export let mousePos: Vec;
+	export let worldMousePos: Vec;
 	export let zoom: number;
 
 	interface NodeData {
 		id: string;
 		node: ConstructorOfATypedSvelteComponent;
 		pos: Vec;
+		selected: boolean;
 	}
 
 	let nodes: Array<NodeData> = [];
@@ -41,7 +44,7 @@
 		} else {
 			node = (await import(`./${type}.svelte`)).default;
 		}
-		nodes.push({id: type + getUniqueId(), node: node, pos: pos});
+		nodes.push({id: type + getUniqueId(), node: node, pos: pos, selected: false});
 		nodes = nodes;
 	}
 
@@ -131,10 +134,49 @@
 			})
 			lines = lines;
 		}
+
+		if (selecting) {
+			selectStart = new Vec(Math.min(selectDown.x, worldMousePos.x), Math.min(selectDown.y, worldMousePos.y))
+			selectEnd = new Vec(Math.max(selectDown.x, worldMousePos.x), Math.max(selectDown.y, worldMousePos.y));
+		}
 	}
 
 	export function mouseUp() {
 		grabbedNodeData = undefined;
+
+		if (selecting) {
+			nodes.forEach(n => {
+				if (selectStart && selectEnd) {
+					let nodeRect: DOMRect = nodeComponents[n.id].getRect();
+					if (n.pos.x >= selectStart.x && n.pos.y >= selectStart.y && n.pos.x + nodeRect.width <= selectEnd.x && n.pos.y + nodeRect.height <= selectEnd.y) {
+						n.selected = true;
+					}
+				}
+			});
+
+			nodes = nodes;
+
+			selecting = false;
+			selectStart = undefined;
+		}
+	}
+
+	let selecting: boolean;
+	let selectDown: Vec;
+
+	let selectStart: Vec | undefined;
+	let selectEnd: Vec | undefined;
+
+	export function startSelect(selectDownGraph: Vec) {
+		selecting = true;
+		selectDown = selectDownGraph;
+	}
+
+	export function deselect() {
+		nodes.forEach(n => {
+			n.selected = false;
+		});
+		nodes = nodes;
 	}
 
 	//#endregion
@@ -178,11 +220,14 @@
 
 <main class="main">
 	{#each nodes as n (n.id)}
-		<Node bind:this={nodeComponents[n.id]} grabNode={grabNode} updateConnection={updateConnection} grabbing={grabbing} dropping={dropping} pos={n.pos} type={n.node} nodeId={n.id}/>
+		<Node bind:this={nodeComponents[n.id]} grabNode={grabNode} updateConnection={updateConnection} grabbing={grabbing} dropping={dropping} pos={n.pos} type={n.node} nodeId={n.id} selected={n.selected}/>
 	{/each}
 	{#each lines as l (l.fromId + "." + l.fromAnchorId + "-" + l.toId + "." + l.toAnchorId)}
 		<Line start={l.start} end={l.end} />
 	{/each}
+	{#if selecting}
+		<SelectBox start={selectStart} end={selectEnd} />
+	{/if}
 </main>
 
 <style>

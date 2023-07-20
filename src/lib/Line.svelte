@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Vec } from "./utils.js";
+	import type { Vec } from "./utils.js";
 
 	export let start: Vec;
 	export let end: Vec;

@@ -12,15 +12,22 @@
 
 	let cameraPos: Vec = new Vec(0, 0);
 	let mousePos: Vec;
+	let worldMousePos: Vec;
 	let zoom: number = 1;
 	let prevZoom: number = 1;
 
+	let hovered: boolean = false;
+
 	onMount(() => {
 		main.addEventListener("contextmenu", (e) => e.preventDefault());
-		main.addEventListener("mousedown", mouseDown)
-		main.addEventListener("mousemove", mouseMove)
-		main.addEventListener("mouseup", mouseUp)
-		main.addEventListener("mousewheel", mouseWheel)
+		main.addEventListener("mousedown", mouseDown);
+		main.addEventListener("mousemove", mouseMove);
+		main.addEventListener("mouseup", mouseUp);
+		main.addEventListener("mousewheel", mouseWheel);
+		window.addEventListener("keydown", keyDown);
+		
+		main.addEventListener("mouseenter", () => hovered = true);
+		main.addEventListener("mouseleave", () => hovered = false);
 
 		updateGraph()
 	});
@@ -31,18 +38,26 @@
 	let dragDown: Vec;
 	let dragDownCameraPos: Vec;
 
+	let startSelect: (selectDown: Vec) => void;
+	function getMousePos(e: MouseEvent): Vec {
+		let rect: DOMRect = main.getBoundingClientRect();
+		return new Vec(e.pageX, e.pageY).subtract(new Vec(rect.left, rect.top));
+	}
+
 	function mouseDown(e: MouseEvent) {
 		if (e.button == 2 && e.target == main) {
-			let rect: DOMRect = main.getBoundingClientRect();
-			dragDown = new Vec(e.pageX, e.pageY).subtract(new Vec(rect.left, rect.top));
+			dragDown = getMousePos(e);
 			dragDownCameraPos = cameraPos.copy();
 			dragging = true;
+		}
+		if (e.button == 0 && e.target == main) {
+			startSelect(cameraToWorld(offsetToCamera(getMousePos(e), main), cameraPos, zoom));
 		}
 	}
 	
 	function mouseMove(e: MouseEvent) {
-		let rect: DOMRect = main.getBoundingClientRect();
-		mousePos = new Vec(e.pageX, e.pageY).subtract(new Vec(rect.left, rect.top));
+		mousePos = getMousePos(e)
+		worldMousePos = cameraToWorld(offsetToCamera(mousePos, main), cameraPos, zoom);
 
 		if (dragging) {
 			cameraPos = dragDownCameraPos.subtract(mousePos.subtract(dragDown).div(zoom));
@@ -62,6 +77,16 @@
 		if (!dragging) {
 			zoom *= 1 - (e as WheelEvent).deltaY*0.001;
 			updateGraph();
+		}
+	}
+
+	let deselect: () => void;
+
+	function keyDown(e: KeyboardEvent) {
+		if (hovered) {
+			if (e.key === "Escape") {
+				deselect();
+			}
 		}
 	}
 
@@ -88,7 +113,7 @@
 
 <main bind:this={main} class="main" style="width: {width}px; height: {height}px;">
 	<div bind:this={transform} class="transform">
-		<NodeManager mousePos={mousePos} zoom={zoom} bind:mouseUp={nodeMouseUp} />
+		<NodeManager mousePos={mousePos} worldMousePos={worldMousePos} zoom={zoom} bind:startSelect={startSelect} bind:deselect={deselect} bind:mouseUp={nodeMouseUp} />
 	</div>
 </main>
 

@@ -11,6 +11,7 @@
 	
 	export let pos: Vec;
 	export let type: ConstructorOfATypedSvelteComponent;
+	export let selected: boolean;
 	export let nodeId: string;
 
 	export let updateConnection: (toNodeId: string, toAnchorId: string, val: any) => void;
@@ -87,6 +88,10 @@
 		return new Vec(0, 0);
 	}
 
+	export function getRect(): DOMRect {
+		return main.getBoundingClientRect();
+	}
+
 	let inputChanged: (id: string, val: any) => void;
 
 	let node: ATypedSvelteComponent;
@@ -106,7 +111,7 @@
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <main 
 	bind:this={main} 
-	class="main"
+	class={`main ${selected ? "selected" : ""}`}
 	style={`left: ${pos.x}px; top: ${pos.y}px;`} 
 	on:mousedown={ e => { if (e.target === main) grabNode(nodeId, trackedInputConnections.map((x) => { 
 			return { id: x.toAnchorId, input: true, pos: new Vec(0,0) } 
@@ -144,6 +149,7 @@
 		background: red;
 		position: absolute;
 		user-select: none;
+		margin: 2px;
 	}
 
 	.anchors {
@@ -162,5 +168,10 @@
 
 	.outputs {
 		right: 0px;
+	}
+
+	.selected {
+		margin: 0;
+		border: 2px solid yellow;
 	}
 </style>
