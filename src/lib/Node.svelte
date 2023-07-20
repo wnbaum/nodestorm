@@ -4,9 +4,10 @@
 	import type NodeManager from "./NodeManager.svelte";
 	import type { Vec } from "./utils.js";
 
+	let main: HTMLElement;
+
 	export let inputs: { [id: string]: any };
 	export let outputs: { [id: string]: any };
-
 	
 	export let pos: Vec;
 	export let type: ConstructorOfATypedSvelteComponent;
@@ -15,6 +16,8 @@
 	export let updateConnection: (toNodeId: string, toAnchorId: string, val: any) => void;
 	export let grabbing: (nodeId: string, anchorId: string, input: boolean, val: any) => void;
 	export let dropping: (nodeId: string, anchorId: string, input: boolean, val: any) => void;
+
+	export let grabNode: (nodeId: string) => void;
 
 	interface Connection {
 		fromAnchorId: string;
@@ -71,7 +74,8 @@
 	})
 </script>
 
-<main class="main" style={`left: ${pos.x}px; top: ${pos.y}px;`}>
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<main bind:this={main} class="main" style={`left: ${pos.x}px; top: ${pos.y}px;`} on:mousedown={ e => { if (e.target === main) grabNode(nodeId); } }>
 	{nodeId}
 	<svelte:component bind:this={node} this={type} bind:inputs={inputs} bind:outputs={outputs} outputChanged={outputChanged} bind:inputChanged={inputChanged}></svelte:component>
 	{#if inputs && outputs}

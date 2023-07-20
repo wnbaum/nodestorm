@@ -4,6 +4,7 @@
 
 <main>
 	<Graph />
+	<Graph />
 </main>
 
 <style>

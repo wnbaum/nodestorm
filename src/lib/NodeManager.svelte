@@ -3,6 +3,9 @@
 	import Node from "./Node.svelte";
 	import { Vec } from "./utils.js";
 
+	export let mousePos: Vec;
+	export let zoom: number;
+
 	interface NodeData {
 		id: string;
 		node: ConstructorOfATypedSvelteComponent;
@@ -60,6 +63,35 @@
 		nodeComponents[toNodeId].doInputChanged(toAnchorId, val);
 	}
 
+	//#region Dragging node 
+
+	let nodeGrabPos: Vec;
+	let prevNodePos: Vec;
+	let grabbedNodeData: NodeData | undefined;
+
+	function grabNode(nodeId: string) {
+		nodeGrabPos = mousePos;
+		grabbedNodeData = nodes.find(x => x.id == nodeId)
+		if (grabbedNodeData) {
+			prevNodePos = grabbedNodeData.pos;
+		}
+	}
+
+	$: mousePos, mouseMove()
+
+	function mouseMove() {
+		if (grabbedNodeData) {
+			grabbedNodeData.pos = mousePos.subtract(nodeGrabPos).div(zoom).add(prevNodePos)
+			nodes = nodes;
+		}
+	}
+
+	export function mouseUp() {
+		grabbedNodeData = undefined;
+	}
+
+	//#endregion
+
 	interface AnchorData {
 		nodeId: string;
 		anchorId: string;
@@ -95,11 +127,12 @@
 	addNode("TestNode", new Vec(0, 0))
 	addNode("TestNode", new Vec(200, 200))
 	addNode("TestNode", new Vec(0, 200))
+	console.log(nodes)
 </script>
 
 <main class="main">
 	{#each nodes as n (n.id)}
-		<Node bind:this={nodeComponents[n.id]} updateConnection={updateConnection} grabbing={grabbing} dropping={dropping} pos={n.pos} type={n.node} nodeId={n.id}/>
+		<Node bind:this={nodeComponents[n.id]} grabNode={grabNode} updateConnection={updateConnection} grabbing={grabbing} dropping={dropping} pos={n.pos} type={n.node} nodeId={n.id}/>
 	{/each}
 	{#each lines as l (l.fromId + "." + l.fromAnchorId + "-" + l.toId + "." + l.toAnchorId)}
 

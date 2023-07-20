@@ -25,7 +25,7 @@
 		updateGraph()
 	});
 
-	// Dragging #region
+	//#region Dragging graph
 
 	let dragging: boolean;
 	let dragDown: Vec;
@@ -33,26 +33,32 @@
 
 	function mouseDown(e: MouseEvent) {
 		if (e.button == 2 && e.target == main) {
-			dragDown = new Vec(e.offsetX, e.offsetY);
+			let rect: DOMRect = main.getBoundingClientRect();
+			dragDown = new Vec(e.pageX, e.pageY).subtract(new Vec(rect.left, rect.top));
 			dragDownCameraPos = cameraPos.copy();
 			dragging = true;
 		}
 	}
 	
 	function mouseMove(e: MouseEvent) {
-		mousePos = new Vec(e.offsetX, e.offsetY);
-
+		let rect: DOMRect = main.getBoundingClientRect();
+		mousePos = new Vec(e.pageX, e.pageY).subtract(new Vec(rect.left, rect.top));
+		
 		if (dragging) {
 			cameraPos = dragDownCameraPos.subtract(mousePos.subtract(dragDown).div(zoom));
 			updateGraph()
 		}
 	}
 
+	let nodeMouseUp: () => void;
+
 	function mouseUp(e: MouseEvent) {
 		dragging = false;
+		nodeMouseUp();
 	}
 
 	function mouseWheel(e: Event) {
+		e.preventDefault()
 		if (!dragging) {
 			zoom *= 1 - (e as WheelEvent).deltaY*0.001;
 			updateGraph();
@@ -75,14 +81,14 @@
 		transform.style.setProperty("transform", `translate(${bgPos.x}px, ${bgPos.y}px) scale(${zoom})`)
 	}
 
-	// #endregion
+	//#endregion
 
 
 </script>
 
 <main bind:this={main} class="main" style="width: {width}px; height: {height}px;">
 	<div bind:this={transform} class="transform">
-		<NodeManager />
+		<NodeManager mousePos={mousePos} zoom={zoom} bind:mouseUp={nodeMouseUp} />
 	</div>
 </main>
 
@@ -96,6 +102,9 @@
 		overflow: hidden;
 
 		position: relative;
+
+		width: 100%;
+		height: 100%;
 	}
 
 	.transform {
