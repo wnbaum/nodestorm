@@ -26,6 +26,14 @@ export class Vec {
 	div(a: number): Vec {
 		return new Vec(this.x / a, this.y / a);
 	}
+
+	len(): number {
+		return Math.sqrt(this.x*this.x + this.y*this.y);
+	}
+
+	angle(): number {
+		return Math.atan2(this.y, this.x);
+	}
 }
 
 export function worldToCamera(pos: Vec, cameraPos: Vec, zoom: number): Vec {

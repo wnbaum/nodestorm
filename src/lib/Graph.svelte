@@ -43,7 +43,7 @@
 	function mouseMove(e: MouseEvent) {
 		let rect: DOMRect = main.getBoundingClientRect();
 		mousePos = new Vec(e.pageX, e.pageY).subtract(new Vec(rect.left, rect.top));
-		
+
 		if (dragging) {
 			cameraPos = dragDownCameraPos.subtract(mousePos.subtract(dragDown).div(zoom));
 			updateGraph()

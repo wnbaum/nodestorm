@@ -2,7 +2,7 @@
 	import { onMount } from "svelte";
 	import Anchor from "./Anchor.svelte";
 	import type NodeManager from "./NodeManager.svelte";
-	import type { Vec } from "./utils.js";
+	import { Vec } from "./utils.js";
 
 	let main: HTMLElement;
 
@@ -17,7 +17,7 @@
 	export let grabbing: (nodeId: string, anchorId: string, input: boolean, val: any) => void;
 	export let dropping: (nodeId: string, anchorId: string, input: boolean, val: any) => void;
 
-	export let grabNode: (nodeId: string) => void;
+	export let grabNode: (nodeId: string, connectedInputs: Array<GrabAnchorData>) => void;
 
 	interface Connection {
 		fromAnchorId: string;
@@ -65,31 +65,71 @@
 		}
 	}
 
+	let inputAnchors: { [id: string]: HTMLElement } = {};
+	let outputAnchors: { [id: string]: HTMLElement } = {};
+
+	let inputContainer: HTMLElement;
+	let outputContainer: HTMLElement;
+
+	export function getAnchorPos(id: string, input: boolean): Vec {
+		let anchor: HTMLElement;
+		let offset: Vec;
+		if (input) {
+			anchor = inputAnchors[id];
+			offset = new Vec(inputContainer.offsetLeft, inputContainer.offsetTop);
+		} else {
+			anchor = outputAnchors[id];
+			offset = new Vec(outputContainer.offsetLeft, outputContainer.offsetTop);
+		}
+		if (anchor) {
+			return new Vec(anchor.offsetLeft + anchor.offsetWidth*0.5, anchor.offsetTop + anchor.offsetHeight*0.5).add(offset);
+		}
+		return new Vec(0, 0);
+	}
+
 	let inputChanged: (id: string, val: any) => void;
 
 	let node: ATypedSvelteComponent;
 
+	interface GrabAnchorData {
+		id: string;
+		input: boolean;
+		pos: Vec;
+	}
+
 	onMount(() => {
 		// console.log(node)
 	})
+	
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<main bind:this={main} class="main" style={`left: ${pos.x}px; top: ${pos.y}px;`} on:mousedown={ e => { if (e.target === main) grabNode(nodeId); } }>
+<main 
+	bind:this={main} 
+	class="main"
+	style={`left: ${pos.x}px; top: ${pos.y}px;`} 
+	on:mousedown={ e => { if (e.target === main) grabNode(nodeId, trackedInputConnections.map((x) => { 
+			return { id: x.toAnchorId, input: true, pos: new Vec(0,0) } 
+		}).concat(connections.map((x) => {
+			return { id: x.fromAnchorId, input: false, pos: new Vec(0,0) }
+		}))) } }>
+
 	{nodeId}
 	<svelte:component bind:this={node} this={type} bind:inputs={inputs} bind:outputs={outputs} outputChanged={outputChanged} bind:inputChanged={inputChanged}></svelte:component>
 	{#if inputs && outputs}
-		<div class="anchors inputs">
+		<div bind:this={inputContainer} class="anchors inputs">
 			{#each Object.entries(inputs) as [id, val]}
 				<Anchor 
+					bind:main={inputAnchors[id]}
 					grabbing={() => { grabbing(nodeId, id, true, undefined) }}
 					dropping={() => { dropping(nodeId, id, true, undefined) }}
 				/>
 			{/each}
 		</div>
-		<div class="anchors outputs">
+		<div bind:this={outputContainer} class="anchors outputs">
 			{#each Object.entries(outputs) as [id, val]}
 				<Anchor
+					bind:main={outputAnchors[id]}
 					grabbing={() => { grabbing(nodeId, id, false, val) }}
 					dropping={() => { dropping(nodeId, id, false, val) }}
 				/>
