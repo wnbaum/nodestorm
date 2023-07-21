@@ -14,8 +14,9 @@
 	.main {
 		width: 20px;
 		height: 20px;
-
 		border-radius: 10px 10px;
+		pointer-events: all;
+		user-select: none;
 
 		background: green;
 	}

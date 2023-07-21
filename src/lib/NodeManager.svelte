@@ -84,18 +84,12 @@
 
 	//#region Dragging node 
 
-	interface GrabbedLine {
-		fromId: string;
-		fromAnchorId: string;
-		toId: string;
-		toAnchorId: string;
-	}
-
 	let nodeGrabPos: Vec;
 	let prevNodePos: Vec;
 	let prevSelectedNodesData: { [id: string]: NodeData } = {};
 	let grabbedNodeData: NodeData | undefined;
 	let grabbedNodeAnchors: Array<GrabAnchorData>;
+	let selectedNodeAnchors: { [id: string]: Array<GrabAnchorData> } = {};
 
 	interface GrabAnchorData {
 		id: string;
@@ -103,7 +97,7 @@
 		pos: Vec;
 	}
 
-	function grabNode(nodeId: string, connectedAnchors: Array<GrabAnchorData>) {
+	function grabNode(nodeId: string) {
 		nodeGrabPos = mousePos;
 		grabbedNodeData = nodes.find(x => x.id == nodeId)
 		if (grabbedNodeData) {
@@ -112,10 +106,11 @@
 				nodes.forEach(n => {
 					if (n.selected) {
 						prevSelectedNodesData[n.id] = {...n}; // copy node data into prev selected node data
+						selectedNodeAnchors[n.id] = nodeComponents[n.id].getConnectedAnchors();
 					}
 				});
 			}
-			grabbedNodeAnchors = connectedAnchors; // needs to be changed to GET CONNECTED ANCHORS FROM NODE
+			grabbedNodeAnchors = nodeComponents[grabbedNodeData.id].getConnectedAnchors();
 		}
 	}
 
@@ -134,20 +129,33 @@
 			}
 			nodes = nodes;
 
-			lines.forEach(line => {
-				if (line.fromId == grabbedNodeData?.id) {
-					let anchor: GrabAnchorData | undefined = grabbedNodeAnchors.find(x => !x.input && x.id === line.fromAnchorId);
+			let updateLine = (line: LineData, nodeData: NodeData | undefined, nodeAnchors: Array<GrabAnchorData>) => {
+				if (line.fromId == nodeData?.id) {
+					let anchor: GrabAnchorData | undefined = nodeAnchors.find(x => !x.input && x.id === line.fromAnchorId);
 					if (anchor) {
-						line.start = grabbedNodeData.pos.add(nodeComponents[grabbedNodeData.id].getAnchorPos(anchor.id, false));
+						line.start = nodeData.pos.add(nodeComponents[nodeData.id].getAnchorPos(anchor.id, false));
 					}
-				} else if (line.toId == grabbedNodeData?.id) {
-					let anchor: GrabAnchorData | undefined = grabbedNodeAnchors.find(x => x.input && x.id === line.toAnchorId);
+				} else if (line.toId == nodeData?.id) {
+					let anchor: GrabAnchorData | undefined = nodeAnchors.find(x => x.input && x.id === line.toAnchorId);
 					if (anchor) {
-						line.end = grabbedNodeData.pos.add(nodeComponents[grabbedNodeData.id].getAnchorPos(anchor.id, true));
+						line.end = nodeData.pos.add(nodeComponents[nodeData.id].getAnchorPos(anchor.id, true));
 						return;
 					}
 				}
+			}
+
+			lines.forEach(line => {
+				updateLine(line, grabbedNodeData, grabbedNodeAnchors);
 			})
+			if (grabbedNodeData.selected) {
+				nodes.forEach(n => {
+					if (n.selected) {
+						lines.forEach(line => {
+							updateLine(line, n, selectedNodeAnchors[n.id]);
+						})
+					}
+				});
+			}
 			lines = lines;
 		}
 
@@ -159,6 +167,7 @@
 
 	export function mouseUp() {
 		grabbedNodeData = undefined;
+		grabbed = undefined;
 
 		if (selecting) {
 			nodes.forEach(n => {
@@ -189,11 +198,52 @@
 		selectDown = selectDownGraph;
 	}
 
-	export function deselect() {
+	export function keyDown(e: KeyboardEvent) {
+		switch (e.key) {
+			case "Escape":
+				deselect();
+				break;
+			case "x":
+				deleteSelectedNodes();
+				break;
+		}
+	}
+
+	function deselect() {
 		nodes.forEach(n => {
 			n.selected = false;
 		});
 		nodes = nodes;
+	}
+
+	function deleteSelectedNodes() {
+		let toRemove: Array<AnchorData> = [];
+		nodes.forEach(n => {
+			if (n.selected) {
+				let anchors: Array<GrabAnchorData> = nodeComponents[n.id].getConnectedAnchors()
+				anchors.forEach(a => {
+					toRemove.push({ nodeId: n.id, anchorId: a.id, input: a.input });
+				})
+			}
+		});
+		nodes.forEach(n => {
+			if (!n.selected) {
+				nodeComponents[n.id].removeNodes(toRemove);
+			}
+		})
+		lines = lines.filter(l => {
+			let keep: boolean = true;
+			toRemove.forEach(anchor => {
+				if (!anchor.input && l.fromId === anchor.nodeId && l.fromAnchorId === anchor.anchorId) {
+					keep = false;
+				}
+				if (anchor.input && l.toId === anchor.nodeId && l.toAnchorId === anchor.anchorId) {
+					keep = false;
+				}
+			})
+			return keep;
+		})
+		nodes = nodes.filter(n => !n.selected);
 	}
 
 	//#endregion
@@ -233,6 +283,7 @@
 	addNode("TestNode", new Vec(0, 0))
 	addNode("TestNode", new Vec(200, 200))
 	addNode("TestNode", new Vec(0, 200))
+	addNode("TestNode", new Vec(200, 0))
 </script>
 
 <main class="main">

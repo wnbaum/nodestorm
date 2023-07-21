@@ -16,7 +16,7 @@
 	let zoom: number = 1;
 	let prevZoom: number = 1;
 
-	let hovered: boolean = false;
+	let hovered: boolean = true;
 
 	onMount(() => {
 		main.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -80,13 +80,11 @@
 		}
 	}
 
-	let deselect: () => void;
+	let keyDownManager: (e: KeyboardEvent) => void;
 
 	function keyDown(e: KeyboardEvent) {
 		if (hovered) {
-			if (e.key === "Escape") {
-				deselect();
-			}
+			keyDownManager(e)
 		}
 	}
 
@@ -113,7 +111,7 @@
 
 <main bind:this={main} class="main" style="width: {width}px; height: {height}px;">
 	<div bind:this={transform} class="transform">
-		<NodeManager mousePos={mousePos} worldMousePos={worldMousePos} zoom={zoom} bind:startSelect={startSelect} bind:deselect={deselect} bind:mouseUp={nodeMouseUp} />
+		<NodeManager mousePos={mousePos} worldMousePos={worldMousePos} zoom={zoom} bind:startSelect={startSelect} bind:keyDown={keyDownManager} bind:mouseUp={nodeMouseUp} />
 	</div>
 </main>
 

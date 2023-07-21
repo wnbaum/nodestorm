@@ -28,5 +28,7 @@
 		height: 2px;
 		background: yellow;
 		position: absolute;
+		user-select: none;
+		pointer-events: none;
 	}
 </style>

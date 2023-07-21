@@ -18,7 +18,7 @@
 	export let grabbing: (nodeId: string, anchorId: string, input: boolean, val: any) => void;
 	export let dropping: (nodeId: string, anchorId: string, input: boolean, val: any) => void;
 
-	export let grabNode: (nodeId: string, connectedInputs: Array<GrabAnchorData>) => void;
+	export let grabNode: (nodeId: string) => void;
 
 	interface Connection {
 		fromAnchorId: string;
@@ -88,8 +88,37 @@
 		return new Vec(0, 0);
 	}
 
+	export function getConnectedAnchors(): Array<GrabAnchorData> {
+		return trackedInputConnections.map((x) => { 
+			return { id: x.toAnchorId, input: true, pos: new Vec(0,0) } 
+		}).concat(connections.map((x) => {
+			return { id: x.fromAnchorId, input: false, pos: new Vec(0,0) }
+		}));
+	}
+
 	export function getRect(): DOMRect {
 		return main.getBoundingClientRect();
+	}
+	
+	interface AnchorData {
+		nodeId: string;
+		anchorId: string;
+		input: boolean;
+		val?: any;
+	}
+
+	export function removeNodes(toRemove: Array<AnchorData>) {
+		toRemove.forEach(anchor => {
+			if (anchor.input) { // check outputs
+				connections = connections.filter(connection => {
+					return connection.toNodeId != anchor.nodeId || connection.toAnchorId != anchor.anchorId;
+				})
+			} else { // check inputs
+				trackedInputConnections = trackedInputConnections.filter(connection => {
+					return connection.fromNodeId != anchor.nodeId || connection.fromAnchorId != anchor.anchorId;
+				})
+			}
+		})
 	}
 
 	let inputChanged: (id: string, val: any) => void;
@@ -113,11 +142,7 @@
 	bind:this={main} 
 	class={`main ${selected ? "selected" : ""}`}
 	style={`left: ${pos.x}px; top: ${pos.y}px;`} 
-	on:mousedown={ e => { if (e.target === main) grabNode(nodeId, trackedInputConnections.map((x) => { 
-			return { id: x.toAnchorId, input: true, pos: new Vec(0,0) } 
-		}).concat(connections.map((x) => {
-			return { id: x.fromAnchorId, input: false, pos: new Vec(0,0) }
-		}))) } }>
+	on:mousedown={ e => { if (e.target === main) grabNode(nodeId) } }>
 
 	{nodeId}
 	<svelte:component bind:this={node} this={type} bind:inputs={inputs} bind:outputs={outputs} outputChanged={outputChanged} bind:inputChanged={inputChanged}></svelte:component>
@@ -160,6 +185,7 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: space-around;
+		pointer-events: none;
 	}
 
 	.inputs {
