@@ -108,7 +108,7 @@
 
 	//#endregion
 
-
+	
 </script>
 
 <main bind:this={main} class="main" style="width: {width}px; height: {height}px;">

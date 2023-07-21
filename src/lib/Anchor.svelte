@@ -1,6 +1,6 @@
 <script lang="ts">
-	export let grabbing: () => void;
-	export let dropping: () => void;
+	export let grabbing: (e: MouseEvent) => void;
+	export let dropping: (e: MouseEvent) => void;
 
 	export let main: HTMLElement;
 </script>

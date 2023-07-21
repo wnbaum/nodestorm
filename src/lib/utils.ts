@@ -1,5 +1,5 @@
 export interface GraphConfig {
-	libraryPath: string;
+	
 }
 
 export class Vec {
@@ -56,4 +56,11 @@ export function offsetToCamera(pos: Vec, main: Element): Vec {
 export function cameraToOffset(pos: Vec, main: Element): Vec {
 	const rect: DOMRect = main.getBoundingClientRect()
 	return pos.add(new Vec(rect.width * 0.5, rect.height * 0.5))
+}
+
+export interface FullConnection {
+	fromNodeId: string;
+	fromAnchorId: string;
+	toNodeId: string;
+	toAnchorId: string;
 }

@@ -3,6 +3,7 @@
 	import Line from "./Line.svelte";
 	import SelectBox from "./SelectBox.svelte";
 	import { Vec, type GraphConfig } from "./utils.js";
+	import type { ModuleNode } from "vite";
 
 	export let mousePos: Vec;
 	export let worldMousePos: Vec;
@@ -38,11 +39,7 @@
 
 	async function addNode(type: string, pos: Vec) {
 		let node: ConstructorOfATypedSvelteComponent;
-		if (type in nodeTypes) {
-			node = nodeTypes[type]
-		} else {
-			node = (await import(`./${type}.svelte`)).default;
-		}
+		node = nodeTypes[type]
 		nodes.push({id: type + getUniqueId(), node: node, pos: pos, selected: false});
 		nodes = nodes;
 	}
@@ -257,32 +254,58 @@
 	let grabbed: AnchorData | undefined;
 	let dropped: AnchorData | undefined;
 
-	function grabbing(nodeId: string, anchorId: string, input: boolean, val: any): void {
-		grabbed = { nodeId: nodeId, anchorId: anchorId, input: input, val: val }
+	function grabbing(button: number, nodeId: string, anchorId: string, input: boolean, val: any): void {
+		if (button === 0) {
+			grabbed = { nodeId: nodeId, anchorId: anchorId, input: input, val: val }
+		} else if (button === 2) {
+			nodeComponents[nodeId].breakConnection(anchorId, input, connections => {
+				if (input) {
+					connections.forEach(connection => {
+						nodeComponents[connection.fromNodeId].breakOutputConnection(connection.fromAnchorId, connection.toNodeId, connection.toAnchorId);
+					})
+				} else {
+					connections.forEach(connection => {
+						nodeComponents[connection.toNodeId].breakInputConnection(connection.fromNodeId, connection.fromAnchorId, connection.toAnchorId);
+					})
+				}
+			});
+			if (input) {
+				lines = lines.filter(line => line.toId != nodeId || line.toAnchorId != anchorId );
+			} else {
+				lines = lines.filter(line => line.fromId != nodeId || line.fromAnchorId != anchorId );
+			}
+		}
 	}
 
-	function dropping(nodeId: string, anchorId: string, input: boolean, val: any): void {
-		dropped = { nodeId: nodeId, anchorId: anchorId, input: input, val: val }
+	function dropping(button: number, nodeId: string, anchorId: string, input: boolean, val: any): void {
+		if (button === 0) {
+			dropped = { nodeId: nodeId, anchorId: anchorId, input: input, val: val }
 
-		if (grabbed && dropped && grabbed.nodeId != dropped.nodeId) {
-			if (grabbed.input && !dropped.input) { // grabbed input dropped output
-				connect(dropped.nodeId, dropped.anchorId, dropped.val, grabbed.nodeId, grabbed.anchorId)
-			} else if (!grabbed.input && dropped.input) { // grabbed output dropped input
-				connect(grabbed.nodeId, grabbed.anchorId, grabbed.val, dropped.nodeId, dropped.anchorId)
+			if (grabbed && dropped && grabbed.nodeId != dropped.nodeId) {
+				if (grabbed.input && !dropped.input) { // grabbed input dropped output
+					connect(dropped.nodeId, dropped.anchorId, dropped.val, grabbed.nodeId, grabbed.anchorId)
+				} else if (!grabbed.input && dropped.input) { // grabbed output dropped input
+					connect(grabbed.nodeId, grabbed.anchorId, grabbed.val, dropped.nodeId, dropped.anchorId)
+				} else {
+					grabbed = undefined;
+					dropped = undefined;
+				}
 			} else {
 				grabbed = undefined;
 				dropped = undefined;
 			}
-		} else {
-			grabbed = undefined;
-			dropped = undefined;
 		}
 	}
 
-	addNode("TestNode", new Vec(0, 0))
-	addNode("TestNode", new Vec(200, 200))
-	addNode("TestNode", new Vec(0, 200))
-	addNode("TestNode", new Vec(200, 0))
+	let modules = import.meta.glob("/src/lib/nodestorm/*.svelte")
+	for (const path in modules) {
+		modules[path]().then((mod) => {
+			// @ts-ignore
+			nodeTypes[path.slice(path.lastIndexOf("/") + 1).replace(".svelte", "")] = mod.default;
+		})
+	}
+
+	
 </script>
 
 <main class="main">

@@ -2,7 +2,7 @@
 	import { onMount } from "svelte";
 	import Anchor from "./Anchor.svelte";
 	import type NodeManager from "./NodeManager.svelte";
-	import { Vec } from "./utils.js";
+	import { Vec, type FullConnection } from "./utils.js";
 
 	let main: HTMLElement;
 
@@ -15,8 +15,8 @@
 	export let nodeId: string;
 
 	export let updateConnection: (toNodeId: string, toAnchorId: string, val: any) => void;
-	export let grabbing: (nodeId: string, anchorId: string, input: boolean, val: any) => void;
-	export let dropping: (nodeId: string, anchorId: string, input: boolean, val: any) => void;
+	export let grabbing: (button: number, nodeId: string, anchorId: string, input: boolean, val: any) => void;
+	export let dropping: (button: number, nodeId: string, anchorId: string, input: boolean, val: any) => void;
 
 	export let grabNode: (nodeId: string) => void;
 
@@ -121,6 +121,36 @@
 		})
 	}
 
+	export function breakConnection(anchorId: string, input: boolean, remove: (connections: Array<FullConnection>) => void) {
+		if (input) {
+			let connectionsToBreak: Array<FullConnection> = [];
+			for (let connection of trackedInputConnections) {
+				if (connection.toAnchorId === anchorId) {
+					connectionsToBreak.push({ fromNodeId: connection.fromNodeId, fromAnchorId: connection.fromAnchorId, toNodeId: nodeId, toAnchorId: anchorId });
+				}
+			}
+			remove(connectionsToBreak);
+			trackedInputConnections = trackedInputConnections.filter(connection => connection.toAnchorId != anchorId);
+		} else {
+			let connectionsToBreak: Array<FullConnection> = [];
+			for (let connection of connections) {
+				if (connection.fromAnchorId === anchorId) {
+					connectionsToBreak.push({ fromNodeId: nodeId, fromAnchorId: anchorId, toNodeId: connection.toNodeId, toAnchorId: connection.toAnchorId });
+				}
+			}
+			remove(connectionsToBreak);
+			connections = connections.filter(connection => connection.fromAnchorId != anchorId);
+		}
+	}
+
+	export function breakOutputConnection(fromAnchorId: string, toNodeId: string, toAnchorId: string) {
+		connections = connections.filter(connection => connection.fromAnchorId != fromAnchorId || connection.toNodeId != toNodeId || connection.toAnchorId != toAnchorId);
+	}
+
+	export function breakInputConnection(fromNodeId: string, fromAnchorId: string, toAnchorId: string) {
+		trackedInputConnections = trackedInputConnections.filter(connection => connection.fromNodeId != fromNodeId || connection.fromAnchorId != fromAnchorId || connection.toAnchorId != toAnchorId);
+	}
+
 	let inputChanged: (id: string, val: any) => void;
 
 	let node: ATypedSvelteComponent;
@@ -151,8 +181,8 @@
 			{#each Object.entries(inputs) as [id, val]}
 				<Anchor 
 					bind:main={inputAnchors[id]}
-					grabbing={() => { grabbing(nodeId, id, true, undefined) }}
-					dropping={() => { dropping(nodeId, id, true, undefined) }}
+					grabbing={(e) => { grabbing(e.button, nodeId, id, true, undefined) }}
+					dropping={(e) => { dropping(e.button, nodeId, id, true, undefined) }}
 				/>
 			{/each}
 		</div>
@@ -160,8 +190,8 @@
 			{#each Object.entries(outputs) as [id, val]}
 				<Anchor
 					bind:main={outputAnchors[id]}
-					grabbing={() => { grabbing(nodeId, id, false, val) }}
-					dropping={() => { dropping(nodeId, id, false, val) }}
+					grabbing={(e) => { grabbing(e.button, nodeId, id, false, val) }}
+					dropping={(e) => { dropping(e.button, nodeId, id, false, val) }}
 				/>
 			{/each}
 		</div>
