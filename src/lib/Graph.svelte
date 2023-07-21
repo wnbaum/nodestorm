@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { Vec } from "./utils.js";
+	import { Vec, type GraphConfig } from "./utils.js";
 	import { onMount } from "svelte";
 	import { cameraToOffset, offsetToCamera, worldToCamera, cameraToWorld } from "./utils.js";
 	import NodeManager from "./NodeManager.svelte"
 
 	export let width: number = 1280;
 	export let height: number = 720;
+
+	export let config: GraphConfig;
 
 	let main: HTMLElement;
 	let transform: HTMLElement;

@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { setContext } from "svelte";
 	import Node from "./Node.svelte";
 	import Line from "./Line.svelte";
 	import SelectBox from "./SelectBox.svelte";
-	import { Vec } from "./utils.js";
+	import { Vec, type GraphConfig } from "./utils.js";
 
 	export let mousePos: Vec;
 	export let worldMousePos: Vec;

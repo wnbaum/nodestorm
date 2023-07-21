@@ -1,3 +1,7 @@
+export interface GraphConfig {
+	libraryPath: string;
+}
+
 export class Vec {
 	x: number;
 	y: number;
