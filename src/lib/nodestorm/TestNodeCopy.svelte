@@ -1,5 +1,5 @@
 <script lang="ts">
-	export const category: string = "Cat1/Cat2/Cat3";
+	export const category: string = "Cat1/Cat2";
 
 	export let inputs: { [id: string]: any } = {"in1": 0, "in2": 0};
 	export const outputs: { [id: string]: any } = {"out": 1};

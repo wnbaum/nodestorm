@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { Vec, type GraphConfig } from "./utils.js";
+	import { Vec, type GraphConfig, type Category } from "./utils.js";
 	import { onMount } from "svelte";
 	import { cameraToOffset, offsetToCamera, worldToCamera, cameraToWorld } from "./utils.js";
-	import NodeManager from "./NodeManager.svelte"
+	import NodeManager from "./NodeManager.svelte";
+	import Picker from "./Picker.svelte";
 
 	export let width: number = 1280;
 	export let height: number = 720;
@@ -19,6 +20,14 @@
 	let prevZoom: number = 1;
 
 	let hovered: boolean = true;
+	let shifting: boolean = false;
+
+	let picker: HTMLElement;
+	let pickerVisible: boolean = false;
+	let pickerPos: Vec = new Vec(0, 0);
+
+	let nodeCategories: { [type: string]: string };
+	let pickerStruct: Array<Category | string> = [];
 
 	onMount(() => {
 		main.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -55,6 +64,9 @@
 		if (e.button == 0 && e.target == main) {
 			startSelect(cameraToWorld(offsetToCamera(getMousePos(e), main), cameraPos, zoom));
 		}
+		if (e.target === main) {
+			pickerVisible = false;
+		}
 	}
 	
 	function mouseMove(e: MouseEvent) {
@@ -82,14 +94,6 @@
 		}
 	}
 
-	let keyDownManager: (e: KeyboardEvent) => void;
-
-	function keyDown(e: KeyboardEvent) {
-		if (hovered) {
-			keyDownManager(e)
-		}
-	}
-
 	function updateGraph() {
 		if (zoom != prevZoom) {
 			let ratio = zoom/prevZoom - 1;
@@ -108,13 +112,78 @@
 
 	//#endregion
 
-	
+	let keyDownManager: (e: KeyboardEvent) => void;
+
+	function keyDown(e: KeyboardEvent) {
+		if (hovered) {
+			keyDownManager(e)
+			if (shifting) {
+				if (e.key === "A") {
+					showPicker();
+				}
+			}
+		}
+		if (e.key === "Shift") {
+			shifting = true;
+		}
+	}
+
+	function keyUp(e: KeyboardEvent) {
+		if (e.key === "Shift") {
+			shifting = false;
+		}
+	}
+
+	function showPicker() {
+		pickerPos = mousePos;
+		pickerVisible = true;
+	}
+
+	$: nodeCategories, makePickerStruct();
+
+	function makePickerStruct() {
+		for (let key in nodeCategories) {
+			let path = nodeCategories[key];
+
+			let split = path.split("/");
+			let cat: Array<string | Category> = pickerStruct;
+			for (let i = 0; i < split.length; i++) {
+				let findCat: Category | undefined = cat.find(x => (x as Category).name === split[i]) as Category | undefined;
+				if (findCat === undefined) {
+					let newCat: Array<string | Category> = [];
+					cat.push({ name: split[i], objects: newCat });
+					cat = newCat;
+				} else {
+					cat = findCat.objects;
+				}
+			}
+		}
+
+		for (let key in nodeCategories) {
+			let path = nodeCategories[key];
+
+			let split = path.split("/");
+			let cat: Array<string | Category> = pickerStruct;
+			for (let i = 0; i < split.length; i++) {
+				let findCat: Category | undefined = cat.find(x => (x as Category).name === split[i]) as Category | undefined;
+				if (findCat != undefined) {
+					cat = findCat.objects;
+				}
+			}
+			cat.push(key);
+		}
+
+		pickerStruct = pickerStruct;
+	}
 </script>
 
 <main bind:this={main} class="main" style="width: {width}px; height: {height}px;">
 	<div bind:this={transform} class="transform">
-		<NodeManager mousePos={mousePos} worldMousePos={worldMousePos} zoom={zoom} bind:startSelect={startSelect} bind:keyDown={keyDownManager} bind:mouseUp={nodeMouseUp} />
+		<NodeManager mousePos={mousePos} worldMousePos={worldMousePos} zoom={zoom} bind:nodeCategories={nodeCategories} bind:startSelect={startSelect} bind:keyDown={keyDownManager} bind:mouseUp={nodeMouseUp} />
 	</div>
+	{#if pickerVisible}
+		<Picker bind:main={picker} pos={pickerPos} struct={pickerStruct}/>
+	{/if}
 </main>
 
 <style>

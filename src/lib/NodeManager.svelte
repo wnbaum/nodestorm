@@ -31,6 +31,7 @@
 	let lines: Array<LineData> = [];
 
 	let nodeTypes: { [type: string]: ConstructorOfATypedSvelteComponent } = {};
+	export let nodeCategories: { [type: string]: string } = {};
 
 	let uid = 0;
 	function getUniqueId() {
@@ -297,15 +298,21 @@
 		}
 	}
 
-	let modules = import.meta.glob("/src/lib/nodestorm/*.svelte")
-	for (const path in modules) {
-		modules[path]().then((mod) => {
+	async function importNodes() {
+		let modules = import.meta.glob("/src/lib/nodestorm/*.svelte")
+
+		let newNodeTypes: { [type: string]: ConstructorOfATypedSvelteComponent } = {};
+
+		for (const path in modules) {
+			let mod = await modules[path]();
 			// @ts-ignore
-			nodeTypes[path.slice(path.lastIndexOf("/") + 1).replace(".svelte", "")] = mod.default;
-		})
+			newNodeTypes[path.slice(path.lastIndexOf("/") + 1).replace(".svelte", "")] = mod.default;
+		}
+
+		nodeTypes = newNodeTypes;
 	}
 
-	
+	importNodes();
 </script>
 
 <main class="main">
@@ -318,6 +325,11 @@
 	{#if selecting}
 		<SelectBox start={selectStart} end={selectEnd} />
 	{/if}
+	<div class="hidden"> <!-- HACK- get node categories -->
+		{#each Object.keys(nodeTypes) as type}
+			<svelte:component this={nodeTypes[type]} bind:category={nodeCategories[type]}></svelte:component>
+		{/each}
+	</div>
 </main>
 
 <style>
@@ -325,5 +337,9 @@
 		position: absolute;
 		width: 0px;
 		height: 0px;
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>

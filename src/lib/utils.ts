@@ -2,6 +2,11 @@ export interface GraphConfig {
 	
 }
 
+export interface Category {
+	name: string;
+	objects: Array<Category | string>;
+}
+
 export class Vec {
 	x: number;
 	y: number;
