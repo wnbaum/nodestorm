@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import Anchor from "./Anchor.svelte";
-	import type NodeManager from "./NodeManager.svelte";
 	import { Vec, type FullConnection } from "./utils.js";
 
 	let main: HTMLElement;
 
 	export let inputs: { [id: string]: any };
 	export let outputs: { [id: string]: any };
+	export let defaultInputs: { [id: string]: any };
 	
 	export let pos: Vec;
 	export let type: ConstructorOfATypedSvelteComponent;
@@ -52,12 +52,18 @@
 	export function checkInputOpen(toAnchorId: string): boolean {
 		return !trackedInputConnections.find(x => x.toAnchorId == toAnchorId) 
 	}
+	
+	export function getAnchorType(input: boolean, anchorId: string) {
+		if (input) {
+			return typeof inputs[anchorId];
+		} else {
+			return typeof outputs[anchorId];
+		}
+	}
 
 	function outputChanged(id: string) {
-		let connection = connections.find(x => x.fromAnchorId == id)
-		if (connection) {
-			updateConnection(connection.toNodeId, connection.toAnchorId, outputs[id])
-		}
+		let outputConnections = connections.filter(x => x.fromAnchorId == id)
+		outputConnections.forEach(connection => updateConnection(connection.toNodeId, connection.toAnchorId, outputs[id]))
 	}
 
 	export function doInputChanged(id: string, val: any): void {
@@ -131,6 +137,7 @@
 			}
 			remove(connectionsToBreak);
 			trackedInputConnections = trackedInputConnections.filter(connection => connection.toAnchorId != anchorId);
+			inputChanged(anchorId, defaultInputs[anchorId]);
 		} else {
 			let connectionsToBreak: Array<FullConnection> = [];
 			for (let connection of connections) {
@@ -149,6 +156,7 @@
 
 	export function breakInputConnection(fromNodeId: string, fromAnchorId: string, toAnchorId: string) {
 		trackedInputConnections = trackedInputConnections.filter(connection => connection.fromNodeId != fromNodeId || connection.fromAnchorId != fromAnchorId || connection.toAnchorId != toAnchorId);
+		inputChanged(toAnchorId, defaultInputs[toAnchorId]);
 	}
 
 	let inputChanged: (id: string, val: any) => void;
@@ -162,7 +170,7 @@
 	}
 
 	onMount(() => {
-		// console.log(node)
+		defaultInputs = {...inputs}
 	})
 	
 </script>
@@ -174,7 +182,6 @@
 	style={`left: ${pos.x}px; top: ${pos.y}px;`} 
 	on:mousedown={ e => { if (e.target === main) grabNode(nodeId) } }>
 
-	{nodeId}
 	<svelte:component bind:this={node} this={type} bind:inputs={inputs} bind:outputs={outputs} outputChanged={outputChanged} bind:inputChanged={inputChanged}></svelte:component>
 	{#if inputs && outputs}
 		<div bind:this={inputContainer} class="anchors inputs">

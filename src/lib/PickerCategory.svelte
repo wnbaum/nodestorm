@@ -19,7 +19,7 @@
 			{:else}
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-static-element-interactions -->
-				<div on:click={() => {
+				<div class="node" on:click={() => {
 					// @ts-ignore
 					addNode(cat);
 				}}>{cat}</div>
@@ -32,5 +32,9 @@
 	.main {
 		margin-left: 10px;
 		cursor: default;
+	}
+
+	.node {
+		margin-left: 10px;
 	}
 </style>

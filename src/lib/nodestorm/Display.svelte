@@ -1,27 +1,28 @@
 <script lang="ts">
 	export const category: string = "Test";
 
-	export let inputs: { [id: string]: any } = {"in1": 0, "in2": 0};
-	export const outputs: { [id: string]: any } = {"out": 1};
+	export let inputs: { [id: string]: any } = {"in1": 0};
+	export const outputs: { [id: string]: any } = {};
 
 	export let outputChanged: (id: string) => void;
 
 	export function inputChanged(id: string, val: any): void {
-		inputs[id] = val
-
-		outputs["out"] = inputs["in1"] + inputs["in2"]
-		outputChanged("out")
+		inputs[id] = val;
+		display = val;
 	}
+
+	let display = 0;
 </script>
 
 <main class="main">
-
+	{display}
 </main>
 
 <style>
 	.main {
-		width: 100px;
-		height: 100px;
+		width: 20px;
+		height: 20px;
 		background: blue;
+		padding: 10px;
 	}
 </style>

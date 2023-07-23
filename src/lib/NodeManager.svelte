@@ -51,25 +51,30 @@
 	}
 
 	function connect(outputNode: string, outputId: string, outputVal: any, inputNode: string, inputId: string) {
-		let inputOpen: boolean = nodeComponents[inputNode].checkInputOpen(inputId);
-		if (inputOpen) {
-			let added: boolean = nodeComponents[outputNode].addConnection(outputId, inputNode, inputId, outputVal)
-			if (added) {
-				nodeComponents[inputNode].trackInputConnection(outputNode, outputId, inputId)
+		let inType = nodeComponents[inputNode].getAnchorType(true, inputId);
+		let outType = nodeComponents[outputNode].getAnchorType(false, outputId);
 
-				let outputNodeData: NodeData | undefined = nodes.find(x => x.id == outputNode);
-				let inputNodeData: NodeData | undefined = nodes.find(x => x.id == inputNode);
-				
-				if (inputNodeData && outputNodeData) {
-					addLine({ 
-						fromId: outputNode, 
-						fromAnchorId: outputId, 
-						toId: inputNode, 
-						toAnchorId: inputId, 
-						start: outputNodeData.pos.add(nodeComponents[outputNode].getAnchorPos(outputId, false)), 
-						end: inputNodeData.pos.add(nodeComponents[inputNode].getAnchorPos(inputId, true))
-					});
-					console.log("newline")
+		if (inType === outType) {
+			let inputOpen: boolean = nodeComponents[inputNode].checkInputOpen(inputId);
+			if (inputOpen) {
+				let added: boolean = nodeComponents[outputNode].addConnection(outputId, inputNode, inputId, outputVal)
+				if (added) {
+					nodeComponents[inputNode].trackInputConnection(outputNode, outputId, inputId)
+
+					let outputNodeData: NodeData | undefined = nodes.find(x => x.id == outputNode);
+					let inputNodeData: NodeData | undefined = nodes.find(x => x.id == inputNode);
+					
+					if (inputNodeData && outputNodeData) {
+						addLine({ 
+							fromId: outputNode, 
+							fromAnchorId: outputId, 
+							toId: inputNode, 
+							toAnchorId: inputId, 
+							start: outputNodeData.pos.add(nodeComponents[outputNode].getAnchorPos(outputId, false)), 
+							end: inputNodeData.pos.add(nodeComponents[inputNode].getAnchorPos(inputId, true))
+						});
+						console.log("newline")
+					}
 				}
 			}
 		}
@@ -160,11 +165,16 @@
 			selectStart = new Vec(Math.min(selectDown.x, worldMousePos.x), Math.min(selectDown.y, worldMousePos.y))
 			selectEnd = new Vec(Math.max(selectDown.x, worldMousePos.x), Math.max(selectDown.y, worldMousePos.y));
 		}
+
+		if (creatingLine) {
+			createLineEnd = worldMousePos;
+		}
 	}
 
 	export function mouseUp() {
 		grabbedNodeData = undefined;
 		grabbed = undefined;
+		creatingLine = false;
 
 		if (selecting) {
 			nodes.forEach(n => {
@@ -255,9 +265,16 @@
 	let grabbed: AnchorData | undefined;
 	let dropped: AnchorData | undefined;
 
+	let creatingLine: boolean = false;
+	let createLineStart: Vec = new Vec(0, 0);
+	let createLineEnd: Vec = new Vec(0, 0);
+
 	function grabbing(button: number, nodeId: string, anchorId: string, input: boolean, val: any): void {
 		if (button === 0) {
 			grabbed = { nodeId: nodeId, anchorId: anchorId, input: input, val: val }
+			creatingLine = true;
+			createLineStart = nodes.find(n => n.id === nodeId)?.pos.add(nodeComponents[nodeId].getAnchorPos(anchorId, input)) ?? new Vec(0, 0); 
+			createLineEnd = createLineStart;
 		} else if (button === 2) {
 			nodeComponents[nodeId].breakConnection(anchorId, input, connections => {
 				if (input) {
@@ -324,6 +341,9 @@
 	{/each}
 	{#if selecting}
 		<SelectBox start={selectStart} end={selectEnd} />
+	{/if}
+	{#if creatingLine}
+		<Line start={createLineStart} end={createLineEnd} />
 	{/if}
 	<div class="hidden"> <!-- HACK- get node categories -->
 		{#each Object.keys(nodeTypes) as type}
