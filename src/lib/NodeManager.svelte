@@ -38,7 +38,7 @@
 		return uid++;
 	}
 
-	async function addNode(type: string, pos: Vec) {
+	export async function addNode(type: string, pos: Vec) {
 		let node: ConstructorOfATypedSvelteComponent;
 		node = nodeTypes[type]
 		nodes.push({id: type + getUniqueId(), node: node, pos: pos, selected: false});

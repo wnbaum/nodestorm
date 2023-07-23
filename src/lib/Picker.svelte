@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { Vec, Category } from "./utils.js";
+	import PickerCategory from "./PickerCategory.svelte";
 
 	export let pos: Vec;
+	export let worldPos: Vec;
+
+	export let nodeManagerAddNode: (type: string, pos: Vec) => void;
 
 	export let main: HTMLElement;
 
@@ -9,14 +13,15 @@
 </script>
 
 <main bind:this={main} class="main" style={`left: ${pos.x}px; top: ${pos.y}px`}>
-	<button on:click={() => console.log("e")}></button>
+	<PickerCategory categories={struct} expanded={true} addNode={(type) => nodeManagerAddNode(type, worldPos)} />
 </main>
 
 <style>
 	.main {
 		position: absolute;
-		width: 100px;
-		height: 100px;
 		background: cyan;
+		height: 200px;
+		width: 200px;
+		overflow: auto;
 	}
 </style>

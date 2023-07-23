@@ -13,6 +13,8 @@
 	let main: HTMLElement;
 	let transform: HTMLElement;
 
+	let nodeManager: NodeManager;
+
 	let cameraPos: Vec = new Vec(0, 0);
 	let mousePos: Vec;
 	let worldMousePos: Vec;
@@ -25,6 +27,7 @@
 	let picker: HTMLElement;
 	let pickerVisible: boolean = false;
 	let pickerPos: Vec = new Vec(0, 0);
+	let pickerWorldPos: Vec = new Vec(0, 0);
 
 	let nodeCategories: { [type: string]: string };
 	let pickerStruct: Array<Category | string> = [];
@@ -87,10 +90,12 @@
 	}
 
 	function mouseWheel(e: Event) {
-		e.preventDefault()
-		if (!dragging) {
-			zoom *= 1 - (e as WheelEvent).deltaY*0.001;
-			updateGraph();
+		if (e.target != picker) {
+			e.preventDefault()
+			if (!dragging) {
+				zoom *= 1 - (e as WheelEvent).deltaY*0.001;
+				updateGraph();
+			}
 		}
 	}
 
@@ -136,6 +141,7 @@
 
 	function showPicker() {
 		pickerPos = mousePos;
+		pickerWorldPos = worldMousePos;
 		pickerVisible = true;
 	}
 
@@ -179,10 +185,13 @@
 
 <main bind:this={main} class="main" style="width: {width}px; height: {height}px;">
 	<div bind:this={transform} class="transform">
-		<NodeManager mousePos={mousePos} worldMousePos={worldMousePos} zoom={zoom} bind:nodeCategories={nodeCategories} bind:startSelect={startSelect} bind:keyDown={keyDownManager} bind:mouseUp={nodeMouseUp} />
+		<NodeManager bind:this={nodeManager} mousePos={mousePos} worldMousePos={worldMousePos} zoom={zoom} bind:nodeCategories={nodeCategories} bind:startSelect={startSelect} bind:keyDown={keyDownManager} bind:mouseUp={nodeMouseUp} />
 	</div>
 	{#if pickerVisible}
-		<Picker bind:main={picker} pos={pickerPos} struct={pickerStruct}/>
+		<Picker bind:main={picker} pos={pickerPos} worldPos={pickerWorldPos} struct={pickerStruct} nodeManagerAddNode={(type, pos) => {
+			nodeManager.addNode(type, pos);
+			pickerVisible = false;
+		}}/>
 	{/if}
 </main>
 
