@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as u from "/src/lib/nodeutils.js"
+	import * as u from "$lib/nodeutils.js"
 
 	export const category: string = "Test";
 

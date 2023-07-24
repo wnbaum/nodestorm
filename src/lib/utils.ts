@@ -1,5 +1,6 @@
 export class GraphConfig {
 	style: Style = new Style();
+	nodeTypes: { [type: string]: ConstructorOfATypedSvelteComponent } = {};
 }
 
 class Style {

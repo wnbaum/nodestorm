@@ -195,7 +195,7 @@
 	font-family: {config.style.font}
 ">
 	<div bind:this={transform} class="transform">
-		<NodeManager bind:this={nodeManager} mousePos={mousePos} worldMousePos={worldMousePos} zoom={zoom} bind:nodeCategories={nodeCategories} bind:startSelect={startSelect} bind:keyDown={keyDownManager} bind:mouseUp={nodeMouseUp} />
+		<NodeManager bind:this={nodeManager} mousePos={mousePos} worldMousePos={worldMousePos} zoom={zoom} nodeTypes={config.nodeTypes} bind:nodeCategories={nodeCategories} bind:startSelect={startSelect} bind:keyDown={keyDownManager} bind:mouseUp={nodeMouseUp} />
 	</div>
 	{#if pickerVisible}
 		<Picker bind:main={picker} pos={pickerPos} worldPos={pickerWorldPos} struct={pickerStruct} nodeManagerAddNode={(type, pos) => {

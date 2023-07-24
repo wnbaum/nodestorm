@@ -30,7 +30,7 @@
 
 	let lines: Array<LineData> = [];
 
-	let nodeTypes: { [type: string]: ConstructorOfATypedSvelteComponent } = {};
+	export let nodeTypes: { [type: string]: ConstructorOfATypedSvelteComponent } = {};
 	export let nodeCategories: { [type: string]: string } = {};
 
 	let uid = 0;
@@ -314,22 +314,6 @@
 			}
 		}
 	}
-
-	async function importNodes() {
-		let modules = import.meta.glob("/src/lib/nodestorm/*.svelte")
-
-		let newNodeTypes: { [type: string]: ConstructorOfATypedSvelteComponent } = {};
-
-		for (const path in modules) {
-			let mod = await modules[path]();
-			// @ts-ignore
-			newNodeTypes[path.slice(path.lastIndexOf("/") + 1).replace(".svelte", "")] = mod.default;
-		}
-
-		nodeTypes = newNodeTypes;
-	}
-
-	importNodes();
 </script>
 
 <main class="main">

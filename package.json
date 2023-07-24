@@ -1,6 +1,7 @@
 {
-	"name": "nodestorm",
-	"version": "0.0.1",
+	"name": "nodestorm-svelte",
+	"license": "MIT",
+	"version": "0.0.2",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run package",
