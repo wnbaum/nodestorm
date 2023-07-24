@@ -3,7 +3,7 @@
 
 	export const category: string = "Test";
 
-	export let inputs: u.Anchor[] = [{ id: "in1", type: "number", val: 0 }];
+	export let inputs: u.Anchor[] = [{ id: "in1", type: "any", val: 0 }];
 	export const outputs: u.Anchor[] = [];
 
 	export let outputChanged: (id: string) => void;

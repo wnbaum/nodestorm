@@ -54,7 +54,7 @@
 		let inType = nodeComponents[inputNode].getAnchorType(true, inputId);
 		let outType = nodeComponents[outputNode].getAnchorType(false, outputId);
 
-		if (inType === outType) {
+		if (inType === outType || inType === "any") {
 			let inputOpen: boolean = nodeComponents[inputNode].checkInputOpen(inputId);
 			if (inputOpen) {
 				let added: boolean = nodeComponents[outputNode].addConnection(outputId, inputNode, inputId, outputVal)
