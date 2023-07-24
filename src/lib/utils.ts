@@ -1,5 +1,7 @@
 export class GraphConfig {
 	style: Style = new Style();
+	width: string = "1280px";
+	height: string = "720px";
 	nodeTypes: { [type: string]: ConstructorOfATypedSvelteComponent } = {};
 }
 
