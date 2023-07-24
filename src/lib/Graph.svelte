@@ -5,8 +5,8 @@
 	import NodeManager from "./NodeManager.svelte";
 	import Picker from "./Picker.svelte";
 
-	export let width: number = 1280;
-	export let height: number = 720;
+	export let width: string = "1280px";
+	export let height: string = "720px";
 
 	export let config: GraphConfig = new GraphConfig();
 
@@ -184,8 +184,8 @@
 </script>
 
 <main bind:this={main} class="main" style="
-	width: {width}px; 
-	height: {height}px; 
+	width: {width}; 
+	height: {height}; 
 	--primary: {config.style.primary.stringify()};
 	--gridcolor: {config.style.gridcolor.stringify()};
 	--nodecolor: {config.style.nodecolor.stringify()};
