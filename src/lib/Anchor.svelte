@@ -18,6 +18,6 @@
 		pointer-events: all;
 		user-select: none;
 
-		background: green;
+		background: var(--accent);
 	}
 </style>

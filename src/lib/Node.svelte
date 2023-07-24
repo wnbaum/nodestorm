@@ -2,12 +2,13 @@
 	import { onMount } from "svelte";
 	import Anchor from "./Anchor.svelte";
 	import { Vec, type FullConnection } from "./utils.js";
+	import * as nodeutils from "./nodeutils.js";
 
 	let main: HTMLElement;
 
-	export let inputs: { [id: string]: any };
-	export let outputs: { [id: string]: any };
-	export let defaultInputs: { [id: string]: any };
+	export let inputs: nodeutils.Anchor[];
+	export let outputs: nodeutils.Anchor[];
+	export let defaultInputs: nodeutils.Anchor[] = [];
 	
 	export let pos: Vec;
 	export let type: ConstructorOfATypedSvelteComponent;
@@ -55,19 +56,19 @@
 	
 	export function getAnchorType(input: boolean, anchorId: string) {
 		if (input) {
-			return typeof inputs[anchorId];
+			return nodeutils.getAnchor(inputs, anchorId)?.type;
 		} else {
-			return typeof outputs[anchorId];
+			return nodeutils.getAnchor(outputs, anchorId)?.type;
 		}
 	}
 
 	function outputChanged(id: string) {
 		let outputConnections = connections.filter(x => x.fromAnchorId == id)
-		outputConnections.forEach(connection => updateConnection(connection.toNodeId, connection.toAnchorId, outputs[id]))
+		outputConnections.forEach(connection => updateConnection(connection.toNodeId, connection.toAnchorId, nodeutils.get(outputs, id)))
 	}
 
 	export function doInputChanged(id: string, val: any): void {
-		if (inputs[id] != val) {
+		if (nodeutils.get(inputs, id) != val) {
 			inputChanged(id, val);
 		}
 	}
@@ -88,8 +89,9 @@
 			anchor = outputAnchors[id];
 			offset = new Vec(outputContainer.offsetLeft, outputContainer.offsetTop);
 		}
+
 		if (anchor) {
-			return new Vec(anchor.offsetLeft + anchor.offsetWidth*0.5, anchor.offsetTop + anchor.offsetHeight*0.5).add(offset);
+			return new Vec(anchor.offsetLeft + anchor.offsetWidth*0.5 + 2, anchor.offsetTop + anchor.offsetHeight*0.5 + 2).add(offset);
 		}
 		return new Vec(0, 0);
 	}
@@ -137,7 +139,7 @@
 			}
 			remove(connectionsToBreak);
 			trackedInputConnections = trackedInputConnections.filter(connection => connection.toAnchorId != anchorId);
-			inputChanged(anchorId, defaultInputs[anchorId]);
+			inputChanged(anchorId, nodeutils.get(defaultInputs, anchorId));
 		} else {
 			let connectionsToBreak: Array<FullConnection> = [];
 			for (let connection of connections) {
@@ -156,7 +158,7 @@
 
 	export function breakInputConnection(fromNodeId: string, fromAnchorId: string, toAnchorId: string) {
 		trackedInputConnections = trackedInputConnections.filter(connection => connection.fromNodeId != fromNodeId || connection.fromAnchorId != fromAnchorId || connection.toAnchorId != toAnchorId);
-		inputChanged(toAnchorId, defaultInputs[toAnchorId]);
+		inputChanged(toAnchorId, nodeutils.get(defaultInputs, toAnchorId));
 	}
 
 	let inputChanged: (id: string, val: any) => void;
@@ -170,9 +172,16 @@
 	}
 
 	onMount(() => {
-		defaultInputs = {...inputs}
+		inputs.forEach(x => {
+			defaultInputs.push({ id: x.id, type: x.type, val: x.val });
+		})
 	})
 	
+	function tryGrab(e: MouseEvent) {
+		if (e.target === main || (e.target as HTMLElement).parentElement === main) {
+			grabNode(nodeId)
+		}
+	}
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -180,25 +189,25 @@
 	bind:this={main} 
 	class={`main ${selected ? "selected" : ""}`}
 	style={`left: ${pos.x}px; top: ${pos.y}px;`} 
-	on:mousedown={ e => { if (e.target === main) grabNode(nodeId) } }>
+	on:mousedown={ tryGrab }>
 
-	<svelte:component bind:this={node} this={type} bind:inputs={inputs} bind:outputs={outputs} outputChanged={outputChanged} bind:inputChanged={inputChanged}></svelte:component>
+	<svelte:component bind:this={node} this={type} bind:inputs={inputs} bind:outputs={outputs} outputChanged={outputChanged} bind:inputChanged={inputChanged} />
 	{#if inputs && outputs}
 		<div bind:this={inputContainer} class="anchors inputs">
-			{#each Object.entries(inputs) as [id, val]}
+			{#each inputs as anchor}
 				<Anchor 
-					bind:main={inputAnchors[id]}
-					grabbing={(e) => { grabbing(e.button, nodeId, id, true, undefined) }}
-					dropping={(e) => { dropping(e.button, nodeId, id, true, undefined) }}
+					bind:main={inputAnchors[anchor.id]}
+					grabbing={(e) => { grabbing(e.button, nodeId, anchor.id, true, undefined) }}
+					dropping={(e) => { dropping(e.button, nodeId, anchor.id, true, undefined) }}
 				/>
 			{/each}
 		</div>
 		<div bind:this={outputContainer} class="anchors outputs">
-			{#each Object.entries(outputs) as [id, val]}
+			{#each outputs as anchor}
 				<Anchor
-					bind:main={outputAnchors[id]}
-					grabbing={(e) => { grabbing(e.button, nodeId, id, false, val) }}
-					dropping={(e) => { dropping(e.button, nodeId, id, false, val) }}
+					bind:main={outputAnchors[anchor.id]}
+					grabbing={(e) => { grabbing(e.button, nodeId, anchor.id, false, anchor.val) }}
+					dropping={(e) => { dropping(e.button, nodeId, anchor.id, false, anchor.val) }}
 				/>
 			{/each}
 		</div>
@@ -207,11 +216,12 @@
 
 <style>
 	.main {
-		padding: 20px;
-		background: red;
+		padding: 0px;
+		background: var(--nodecolor);
 		position: absolute;
 		user-select: none;
 		margin: 2px;
+		border-radius: var(--noderadius);
 	}
 
 	.anchors {
@@ -226,15 +236,15 @@
 	}
 
 	.inputs {
-		left: 0px;
+		left: 4px;
 	}
 
 	.outputs {
-		right: 0px;
+		right: 4px;
 	}
 
 	.selected {
 		margin: 0;
-		border: 2px solid yellow;
+		border: 2px solid var(--accent);
 	}
 </style>

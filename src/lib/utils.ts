@@ -1,5 +1,53 @@
-export interface GraphConfig {
-	
+export class GraphConfig {
+	style: Style = new Style();
+}
+
+class Style {
+	primary: Color = new Color(20, 20, 20);
+	gridcolor: Color = this.primary.lighten(40);
+	nodecolor: Color = this.primary.lighten(10);
+	noderadius: string = "20px";
+	accent: Color = new Color(0, 0, 255);
+	textcolor: Color = new Color(255, 255, 255);
+	font: string = "Arial";
+}
+
+class Color {
+	r: number;
+	g: number;
+	b: number;
+	a: number;
+
+	constructor(r: number, g: number, b: number, a: number = 1) {
+		this.r = r;
+		this.g = g;
+		this.b = b;
+		this.a = a;
+	}
+
+	set(r: number, g: number, b: number, a: number = 1) {
+		this.r = r;
+		this.g = g;
+		this.b = b;
+		this.a = a;
+	}
+
+	stringify(): string {
+		const rgb = `${this.r}, ${this.g}, ${this.b}`;
+		if (this.a === 1) {
+			return `rgb(${rgb})`
+		} else {
+			return `rgba(${rgb}, ${this.a})`;
+		}
+	}
+
+	lighten(a: number): Color {
+		return new Color(this.r + a, this.g + a, this.b + a, this.a);
+	}
+
+	invert(): Color {
+		return new Color(255 - this.r, 255 - this.g, 255 - this.b, this.a);
+	}
 }
 
 export interface Category {

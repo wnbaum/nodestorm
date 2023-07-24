@@ -19,9 +19,10 @@
 <style>
 	.main {
 		position: absolute;
-		background: cyan;
+		background: var(--nodecolor);
 		height: 200px;
 		width: 200px;
 		overflow: auto;
+		padding-top: 20px;
 	}
 </style>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Vec, type GraphConfig, type Category } from "./utils.js";
+	import { Vec, GraphConfig, type Category } from "./utils.js";
 	import { onMount } from "svelte";
 	import { cameraToOffset, offsetToCamera, worldToCamera, cameraToWorld } from "./utils.js";
 	import NodeManager from "./NodeManager.svelte";
@@ -8,7 +8,7 @@
 	export let width: number = 1280;
 	export let height: number = 720;
 
-	export let config: GraphConfig;
+	export let config: GraphConfig = new GraphConfig();
 
 	let main: HTMLElement;
 	let transform: HTMLElement;
@@ -183,7 +183,17 @@
 	}
 </script>
 
-<main bind:this={main} class="main" style="width: {width}px; height: {height}px;">
+<main bind:this={main} class="main" style="
+	width: {width}px; 
+	height: {height}px; 
+	--primary: {config.style.primary.stringify()};
+	--gridcolor: {config.style.gridcolor.stringify()};
+	--nodecolor: {config.style.nodecolor.stringify()};
+	--noderadius: {config.style.noderadius};
+	--accent: {config.style.accent.stringify()};
+	color: {config.style.textcolor.stringify()};
+	font-family: {config.style.font}
+">
 	<div bind:this={transform} class="transform">
 		<NodeManager bind:this={nodeManager} mousePos={mousePos} worldMousePos={worldMousePos} zoom={zoom} bind:nodeCategories={nodeCategories} bind:startSelect={startSelect} bind:keyDown={keyDownManager} bind:mouseUp={nodeMouseUp} />
 	</div>
@@ -197,10 +207,10 @@
 
 <style>
 	.main {
-		background: #444;
+		background-color: var(--primary);
 		background-image: 
-			linear-gradient(to right, #ccc 1px, transparent 1px), 
-			linear-gradient(to bottom, #ccc 1px, transparent 1px);
+			linear-gradient(to right, var(--gridcolor) 1px, transparent 1px), 
+			linear-gradient(to bottom, var(--gridcolor) 1px, transparent 1px);
 
 		overflow: hidden;
 

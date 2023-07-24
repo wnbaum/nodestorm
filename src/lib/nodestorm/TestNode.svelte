@@ -1,15 +1,17 @@
 <script lang="ts">
+	import * as u from "/src/lib/nodeutils.js"
+
 	export const category: string = "Test";
 
-	export let inputs: { [id: string]: any } = {"in1": 0, "in2": 0};
-	export const outputs: { [id: string]: any } = {"out": 1};
+	export let inputs: u.Anchor[] = [{ id: "in1", type: "number", val: 0 }, { id: "in2", type: "number", val: 0 }]
+	export const outputs: u.Anchor[] = [{ id: "out", type: "number", val: 1 }];
 
 	export let outputChanged: (id: string) => void;
 
 	export function inputChanged(id: string, val: any): void {
-		inputs[id] = val
+		u.set(inputs, id, val);
 
-		outputs["out"] = inputs["in1"] + inputs["in2"]
+		u.set(outputs, "out", u.get(inputs, "in1") + u.get(inputs, "in2"));
 		outputChanged("out")
 	}
 </script>
@@ -22,6 +24,5 @@
 	.main {
 		width: 100px;
 		height: 100px;
-		background: blue;
 	}
 </style>

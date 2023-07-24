@@ -1,10 +1,12 @@
 <script lang="ts">
-	import Graph from "$lib/Graph.svelte";
+	import Graph from "./../lib/Graph.svelte";
+	import { GraphConfig } from "./../lib/utils.js";
 
+	let config: GraphConfig = new GraphConfig();
 </script>
 
 <main>
-	<Graph config={{}}/>
+	<Graph config={config} />
 </main>
 
 <style>

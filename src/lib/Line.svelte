@@ -26,7 +26,7 @@
 <style>
 	.main {
 		height: 2px;
-		background: yellow;
+		background: var(--accent);
 		position: absolute;
 		user-select: none;
 		pointer-events: none;
