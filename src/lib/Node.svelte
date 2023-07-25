@@ -21,6 +21,8 @@
 
 	export let grabNode: (nodeId: string) => void;
 
+	export let getAnchorColor: (type: string) => string;
+
 	interface Connection {
 		fromAnchorId: string;
 		toNodeId: string;
@@ -199,6 +201,7 @@
 					bind:main={inputAnchors[anchor.id]}
 					grabbing={(e) => { grabbing(e.button, nodeId, anchor.id, true, undefined) }}
 					dropping={(e) => { dropping(e.button, nodeId, anchor.id, true, undefined) }}
+					color={getAnchorColor(anchor.type)}
 				/>
 			{/each}
 		</div>
@@ -208,6 +211,7 @@
 					bind:main={outputAnchors[anchor.id]}
 					grabbing={(e) => { grabbing(e.button, nodeId, anchor.id, false, anchor.val) }}
 					dropping={(e) => { dropping(e.button, nodeId, anchor.id, false, anchor.val) }}
+					color={getAnchorColor(anchor.type)}
 				/>
 			{/each}
 		</div>

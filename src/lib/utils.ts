@@ -3,6 +3,9 @@ export class GraphConfig {
 	width: string = "1280px";
 	height: string = "720px";
 	nodeTypes: { [type: string]: ConstructorOfATypedSvelteComponent } = {};
+	anchorColor = (type: string): string => {
+		return this.style.accent.stringify();
+	};
 }
 
 class Style {

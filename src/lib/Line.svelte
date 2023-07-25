@@ -4,6 +4,8 @@
 	export let start: Vec;
 	export let end: Vec;
 
+	export let color: string;
+
 	let diff: Vec;
 	let len: number;
 	let angle: number;
@@ -19,14 +21,13 @@
 	}
 </script>
 
-<main class="main" style={`left: ${start.x}px; top: ${start.y}px; width: ${len}px; transform: translate(-${len/2}px, ${-1}px) rotate(${angle}rad) translateX(${len/2}px)`}>
+<main class="main" style={`left: ${start.x}px; top: ${start.y}px; width: ${len}px; transform: translate(-${len/2}px, ${-1}px) rotate(${angle}rad) translateX(${len/2}px); background: ${color}`}>
 
 </main>
 
 <style>
 	.main {
 		height: 2px;
-		background: var(--accent);
 		position: absolute;
 		user-select: none;
 		pointer-events: none;

@@ -9,6 +9,8 @@
 	export let worldMousePos: Vec;
 	export let zoom: number;
 
+	export let getAnchorColor: (type: string) => string;
+
 	interface NodeData {
 		id: string;
 		node: ConstructorOfATypedSvelteComponent;
@@ -22,6 +24,7 @@
 	interface LineData {
 		fromId: string;
 		fromAnchorId: string;
+		fromAnchorType: string;
 		toId: string;
 		toAnchorId: string;
 		start: Vec;
@@ -68,6 +71,7 @@
 						addLine({ 
 							fromId: outputNode, 
 							fromAnchorId: outputId, 
+							fromAnchorType: outType ?? "",
 							toId: inputNode, 
 							toAnchorId: inputId, 
 							start: outputNodeData.pos.add(nodeComponents[outputNode].getAnchorPos(outputId, false)), 
@@ -268,12 +272,14 @@
 	let creatingLine: boolean = false;
 	let createLineStart: Vec = new Vec(0, 0);
 	let createLineEnd: Vec = new Vec(0, 0);
+	let createLineType: string = "";
 
 	function grabbing(button: number, nodeId: string, anchorId: string, input: boolean, val: any): void {
 		if (button === 0) {
 			grabbed = { nodeId: nodeId, anchorId: anchorId, input: input, val: val }
 			creatingLine = true;
 			createLineStart = nodes.find(n => n.id === nodeId)?.pos.add(nodeComponents[nodeId].getAnchorPos(anchorId, input)) ?? new Vec(0, 0); 
+			createLineType = nodeComponents[nodeId].getAnchorType(input, anchorId) ?? "";
 			createLineEnd = createLineStart;
 		} else if (button === 2) {
 			nodeComponents[nodeId].breakConnection(anchorId, input, connections => {
@@ -318,16 +324,16 @@
 
 <main class="main">
 	{#each nodes as n (n.id)}
-		<Node bind:this={nodeComponents[n.id]} grabNode={grabNode} updateConnection={updateConnection} grabbing={grabbing} dropping={dropping} pos={n.pos} type={n.node} nodeId={n.id} selected={n.selected}/>
+		<Node bind:this={nodeComponents[n.id]} getAnchorColor={getAnchorColor} grabNode={grabNode} updateConnection={updateConnection} grabbing={grabbing} dropping={dropping} pos={n.pos} type={n.node} nodeId={n.id} selected={n.selected}/>
 	{/each}
 	{#each lines as l (l.fromId + "." + l.fromAnchorId + "-" + l.toId + "." + l.toAnchorId)}
-		<Line start={l.start} end={l.end} />
+		<Line color={getAnchorColor(l.fromAnchorType)} start={l.start} end={l.end} />
 	{/each}
 	{#if selecting}
 		<SelectBox start={selectStart} end={selectEnd} />
 	{/if}
 	{#if creatingLine}
-		<Line start={createLineStart} end={createLineEnd} />
+		<Line color={getAnchorColor(createLineType)} start={createLineStart} end={createLineEnd} />
 	{/if}
 	<div class="hidden"> <!-- HACK- get node categories -->
 		{#each Object.keys(nodeTypes) as type}

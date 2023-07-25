@@ -3,10 +3,12 @@
 	export let dropping: (e: MouseEvent) => void;
 
 	export let main: HTMLElement;
+
+	export let color: string;
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<main bind:this={main} class="main" on:mousedown={grabbing} on:mouseup={dropping}>
+<main bind:this={main} class="main" on:mousedown={grabbing} on:mouseup={dropping} style="background: {color}">
 
 </main>
 
@@ -17,7 +19,5 @@
 		border-radius: 10px 10px;
 		pointer-events: all;
 		user-select: none;
-
-		background: var(--accent);
 	}
 </style>
