@@ -202,6 +202,7 @@
 					grabbing={(e) => { grabbing(e.button, nodeId, anchor.id, true, undefined) }}
 					dropping={(e) => { dropping(e.button, nodeId, anchor.id, true, undefined) }}
 					color={getAnchorColor(anchor.type)}
+					id={anchor.id}
 				/>
 			{/each}
 		</div>
@@ -212,6 +213,7 @@
 					grabbing={(e) => { grabbing(e.button, nodeId, anchor.id, false, anchor.val) }}
 					dropping={(e) => { dropping(e.button, nodeId, anchor.id, false, anchor.val) }}
 					color={getAnchorColor(anchor.type)}
+					id={anchor.id}
 				/>
 			{/each}
 		</div>

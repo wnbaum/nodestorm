@@ -5,10 +5,12 @@
 	export let main: HTMLElement;
 
 	export let color: string;
+
+	export let id: string = "";
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<main bind:this={main} class="main" on:mousedown={grabbing} on:mouseup={dropping} style="background: {color}">
+<main bind:this={main} title={id} class="main" on:mousedown={grabbing} on:mouseup={dropping} style="background: {color}">
 
 </main>
 
