@@ -87,7 +87,8 @@
 	}
 
 	function mouseWheel(e: Event) {
-		if (e.target != picker) {
+		if (e.target != picker && (e.target as HTMLElement).dataset.pickeritem == undefined) {
+			console.log((e.target as HTMLElement).dataset.pickeritem)
 			e.preventDefault()
 			if (!dragging) {
 				zoom *= 1 - (e as WheelEvent).deltaY*0.001;

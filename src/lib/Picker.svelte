@@ -25,4 +25,22 @@
 		overflow: auto;
 		padding-top: 20px;
 	}
+
+	.main::-webkit-scrollbar {
+		width: 10px;
+	}
+
+	.main::-webkit-scrollbar-track {
+		background: none;
+	}
+
+	.main::-webkit-scrollbar-thumb {
+		background: var(--gridcolor);
+		border-radius: 5px;
+	}
+
+	/* Handle on hover */
+	.main::-webkit-scrollbar-thumb:hover {
+		background: var(--gridcolor);
+	}
 </style>

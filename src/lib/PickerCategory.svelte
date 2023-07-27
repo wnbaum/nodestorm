@@ -8,13 +8,13 @@
 	export let addNode: (type: string) => void;
 </script>
 
-<main class="main">
+<main class="main" data-pickeritem>
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	{#if name != ""}
-		<div on:click={() => expanded = !expanded}>{(expanded ? "v " : "> ") + name}</div>
+		<div data-pickeritem on:click={() => expanded = !expanded}>{(expanded ? "v " : "> ") + name}</div>
 	{/if}
-	<div class="cats">
+	<div class="cats" data-pickeritem>
 		{#if expanded}
 			{#each categories as cat}
 				{#if typeof cat != "string"}
@@ -22,7 +22,7 @@
 				{:else}
 					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<!-- svelte-ignore a11y-no-static-element-interactions -->
-					<div class="node" on:click={() => {
+					<div class="node" data-pickeritem on:click={() => {
 						// @ts-ignore
 						addNode(cat);
 					}}>{cat}</div>
